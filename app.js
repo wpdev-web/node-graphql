@@ -4,6 +4,9 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const multer = require('multer');
+const { createHandler } = require('graphql-http/lib/use/express');
+const graphqlSchema = require('./graphql/schema');
+const graphqlResolvers = require('./graphql/resolvers');
 
 
 
@@ -47,7 +50,16 @@ app.use((req, res, next) => {
   next();
 });
 
+app.get('/', (req, res) => {
+  res.send('API running');
+});
 
+app.use('/graphql', 
+  createHandler({
+    schema: graphqlSchema,
+    rootValue: graphqlResolvers,
+  })
+);
 
 app.use((error, req, res, next) => {
   console.log(error);
@@ -59,13 +71,18 @@ app.use((error, req, res, next) => {
 
 mongoose
   .connect(
-    'mongodb+srv://wpdev-web:<pass>@cluster0.wts9gat.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0',
+    'mongodb+srv://wpdev-web:wpdev-web@cluster0.wts9gat.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0',
     {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     }
   )
   .then(result => {
+    console.log('Connected to MongoDB');
+    console.log('Starting server on port 8080');
+  })
+  .then(() => {
+    console.log('Server is running on http://localhost:8080/graphql');
     app.listen(8080);
   })
   .catch(err => console.log(err));
